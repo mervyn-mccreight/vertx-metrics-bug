@@ -8,11 +8,11 @@ repositories {
 }
 
 dependencies {
-    implementation("io.vertx:vertx-core:4.3.3")
-    implementation("io.vertx:vertx-web:4.3.3")
-    implementation("io.vertx:vertx-web-client:4.3.3")
-    implementation("io.vertx:vertx-lang-kotlin-coroutines:4.3.3")
-    implementation("io.vertx:vertx-micrometer-metrics:4.3.3")
+    implementation("io.vertx:vertx-core:4.4.0")
+    implementation("io.vertx:vertx-web:4.4.0")
+    implementation("io.vertx:vertx-web-client:4.4.0")
+    implementation("io.vertx:vertx-lang-kotlin-coroutines:4.4.0")
+    implementation("io.vertx:vertx-micrometer-metrics:4.4.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.9.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }
