@@ -8,7 +8,6 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class AppTest {
 
@@ -31,7 +30,7 @@ class AppTest {
         val client = WebClient.create(vertx)
 
         try {
-            client.get(app.metricsPort, "localhost", "/metrics")
+            client.get(app.apiPort, "localhost", "/metrics")
                 .send()
                 .await()
                 .also {
@@ -45,7 +44,7 @@ class AppTest {
                 client.post(app.apiPort, "localhost", "/post-hello").send().await().bodyAsString()
             )
 
-            client.get(app.metricsPort, "localhost", "/metrics")
+            client.get(app.apiPort, "localhost", "/metrics")
                 .send()
                 .await()
                 .also {

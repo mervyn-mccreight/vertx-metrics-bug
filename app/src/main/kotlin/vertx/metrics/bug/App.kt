@@ -18,16 +18,13 @@ import io.vertx.micrometer.PrometheusScrapingHandler
 import io.vertx.micrometer.VertxPrometheusOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class App {
     private val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    private val registryName = UUID.randomUUID().toString()
     private val vertxWithMetrics = Vertx.vertx(
         VertxOptions()
             .setMetricsOptions(
                 MicrometerMetricsOptions()
-                    .setRegistryName(registryName)
                     .setMicrometerRegistry(registry)
                     .setPrometheusOptions(VertxPrometheusOptions().setEnabled(true))
                     .setServerRequestTagsProvider {
@@ -40,27 +37,10 @@ class App {
                     .setEnabled(true)
             )
     )
-    private val metrics = object : CoroutineVerticle() {
-        private var server: HttpServer? = null
-        val port get() = server?.actualPort() ?: error("Start server first.")
-
-        override suspend fun start() {
-            val prometheusHandler = PrometheusScrapingHandler.create(registryName)
-            val router = Router.router(vertx)
-            router.get("/metrics")
-                .coroutineHandler(this) {
-                    prometheusHandler.handle(it)
-                }
-            server = vertx.createHttpServer().requestHandler(router).listen(0).await()
-        }
-
-        override suspend fun stop() {
-            server?.close()?.await()
-        }
-    }
 
     private val api = object : CoroutineVerticle() {
         private var server: HttpServer? = null
+        private val scraper = PrometheusScrapingHandler.create(registry)
         val port get() = server?.actualPort() ?: error("Start server first.")
 
         override suspend fun start() {
@@ -71,6 +51,9 @@ class App {
             router
                 .post("/post-hello")
                 .coroutineHandler(this) { it.response().apply { statusCode = 202 }.end("will be done.").await() }
+            router
+                .get("/metrics")
+                .coroutineHandler(this) { scraper.handle(it) }
 
             server = vertx.createHttpServer().requestHandler(router).listen(0).await()
         }
@@ -81,11 +64,9 @@ class App {
     }
 
     val apiPort get() = api.port
-    val metricsPort get() = metrics.port
 
     suspend fun start() {
         vertxWithMetrics.deployVerticle(api).await()
-        vertxWithMetrics.deployVerticle(metrics).await()
     }
 
     suspend fun stop() {
